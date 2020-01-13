@@ -244,10 +244,10 @@ class Searcher {
 PYBIND11_MODULE(fastzy, m) {
     pybind11::class_<Searcher>(m, "Searcher")
         .def(
-            pybind11::init<const std::string &, const std::string &>(),
+            pybind11::init<std::string, std::string>(),
             "Searcher object that holds the text from the input file. separator argument is used to separate each line at a specific point to be able to process each line into tokens.",
             pybind11::arg("input_file_path"),
-            pybind11::arg("separator").none(true)
+            pybind11::arg("separator")
         )
         .def(
             "lookup",
