@@ -52,7 +52,7 @@ sudo dnf install python3-devel gcc-c++
 ```
 * Ubuntu 18.04
 ```sh
-sudo apt install python3-dev g++-8
+sudo apt install python3-dev g++-9
 ```
 
 ### Installation
