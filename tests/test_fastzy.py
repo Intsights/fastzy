@@ -57,6 +57,7 @@ class FastzyTestCase(
             'second.line',
             'third.line',
             'fourth.line',
+            'fourthhhhh.line',
             'fifth.line',
         ]
 
@@ -118,6 +119,51 @@ class FastzyTestCase(
             expected_results=[
                 'first.line',
                 'fourth.line',
+                'fourthhhhh.line',
                 'fifth.line',
             ],
         )
+
+    def test_wagner_fischer(
+        self,
+    ):
+        with tempfile.NamedTemporaryFile('w') as tmp_file:
+            tmp_file.flush()
+
+            searcher = fastzy.Searcher(
+                input_file_path=tmp_file.name,
+                separator='',
+            )
+
+            self.assertEqual(
+                first=searcher.wagner_fischer('a', ''),
+                second=1,
+            )
+            self.assertEqual(
+                first=searcher.wagner_fischer('abc', ''),
+                second=3,
+            )
+            self.assertEqual(
+                first=searcher.wagner_fischer('islander', 'slander'),
+                second=1,
+            )
+            self.assertEqual(
+                first=searcher.wagner_fischer('mart', 'karma'),
+                second=3,
+            )
+            self.assertEqual(
+                first=searcher.wagner_fischer('sitting', 'kitten'),
+                second=3,
+            )
+            self.assertEqual(
+                first=searcher.wagner_fischer('football', 'ball'),
+                second=4,
+            )
+            self.assertEqual(
+                first=searcher.wagner_fischer('football', 'foot'),
+                second=4,
+            )
+            self.assertEqual(
+                first=searcher.wagner_fischer('intention', 'execution'),
+                second=5,
+            )
