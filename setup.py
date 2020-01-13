@@ -6,7 +6,7 @@ import glob
 
 setuptools.setup(
     name='fastzy',
-    version='0.1.0',
+    version='0.1.1',
     author='Gal Ben David',
     author_email='wavenator@gmail.com',
     url='https://github.com/wavenator/fastzy',
