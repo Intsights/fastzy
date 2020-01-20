@@ -1,6 +1,6 @@
 <p align="center">
-    <a href="https://github.com/wavenator/fastzy">
-        <img src="https://raw.githubusercontent.com/wavenator/fastzy/master/images/logo.png" alt="Logo">
+    <a href="https://github.com/Intsights/fastzy">
+        <img src="https://raw.githubusercontent.com/Intsights/fastzy/master/images/logo.png" alt="Logo">
     </a>
     <h3 align="center">
         Python library for fast fuzzy search over a big file leveraging C++ and mbleven algorithm
@@ -9,7 +9,7 @@
 
 ![license](https://img.shields.io/badge/MIT-License-blue)
 ![Python](https://img.shields.io/badge/Python-3.6%20%7C%203.7%20%7C%203.8%20%7C%20pypy3-blue)
-![Build](https://github.com/wavenator/fastzy/workflows/Build/badge.svg)
+![Build](https://github.com/Intsights/fastzy/workflows/Build/badge.svg)
 [![PyPi](https://img.shields.io/pypi/v/fastzy.svg)](https://pypi.org/project/fastzy/)
 
 ## Table of Contents
@@ -40,7 +40,7 @@ Fastzy is a library written in C++ used for searching over a file for a text bas
 | Library  | Text Size | Function | Time | #Results | Improvement Factor |
 | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
 | [python-Levenshtein](https://github.com/ztane/python-Levenshtein) | 500mb | Levenshtein.distance('text') | 24.2 s | 1249 | 1.0x |
-| [fastzy](https://github.com/wavenator/fastzy) | 500mb | fastzy.lookup('text) | 22.2 ms | 1249 | 1090.0x |
+| [fastzy](https://github.com/Intsights/fastzy) | 500mb | fastzy.lookup('text) | 22.2 ms | 1249 | 1090.0x |
 
 
 ### Prerequisites
@@ -90,6 +90,6 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## Contact
 
-Gal Ben David - wavenator@gmail.com
+Gal Ben David - gal@intsights.com
 
-Project Link: [https://github.com/wavenator/fastzy](https://github.com/wavenator/fastzy)
+Project Link: [https://github.com/Intsights/fastzy](https://github.com/Intsights/fastzy)

@@ -8,10 +8,10 @@ setuptools.setup(
     name='fastzy',
     version='0.1.1',
     author='Gal Ben David',
-    author_email='wavenator@gmail.com',
-    url='https://github.com/wavenator/fastzy',
+    author_email='gal@intsights.com',
+    url='https://github.com/Intsights/fastzy',
     project_urls={
-        'Source': 'https://github.com/wavenator/fastzy',
+        'Source': 'https://github.com/Intsights/fastzy',
     },
     license='MIT',
     description='Python library for fast fuzzy search over a big file leveraging C++ and mbleven algorithm',
