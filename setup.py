@@ -1,12 +1,28 @@
 import setuptools
-import pybind11
 import os
 import glob
 
 
+class GetPybind11Include:
+    def __init__(
+        self,
+        user,
+    ):
+        self.user = user
+
+    def __str__(
+        self,
+    ):
+        import pybind11
+
+        return pybind11.get_include(
+            user=self.user,
+        )
+
+
 setuptools.setup(
     name='fastzy',
-    version='0.1.2',
+    version='0.1.3',
     author='Gal Ben David',
     author_email='gal@intsights.com',
     url='https://github.com/Intsights/fastzy',
@@ -27,6 +43,9 @@ setuptools.setup(
     python_requires='>=3.6',
     zip_safe=False,
     install_requires=[
+        'pybind11',
+    ],
+    setup_requires=[
         'pybind11',
     ],
     package_data={},
@@ -50,8 +69,8 @@ setuptools.setup(
             ],
             include_dirs=[
                 'src',
-                pybind11.get_include(False),
-                pybind11.get_include(True),
+                GetPybind11Include(False),
+                GetPybind11Include(True),
             ]
         ),
     ],
