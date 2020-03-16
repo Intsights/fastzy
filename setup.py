@@ -3,26 +3,9 @@ import os
 import glob
 
 
-class GetPybind11Include:
-    def __init__(
-        self,
-        user,
-    ):
-        self.user = user
-
-    def __str__(
-        self,
-    ):
-        import pybind11
-
-        return pybind11.get_include(
-            user=self.user,
-        )
-
-
 setuptools.setup(
     name='fastzy',
-    version='0.1.3',
+    version='0.1.4',
     author='Gal Ben David',
     author_email='gal@intsights.com',
     url='https://github.com/Intsights/fastzy',
@@ -42,12 +25,6 @@ setuptools.setup(
     keywords='fuzzy levenshtein mbleven wagner-fischer c++ approximate',
     python_requires='>=3.6',
     zip_safe=False,
-    install_requires=[
-        'pybind11',
-    ],
-    setup_requires=[
-        'pybind11',
-    ],
     package_data={},
     include_package_data=True,
     ext_modules=[
@@ -69,9 +46,7 @@ setuptools.setup(
             ],
             include_dirs=[
                 'src',
-                GetPybind11Include(False),
-                GetPybind11Include(True),
-            ]
+            ],
         ),
     ],
 )
