@@ -21,11 +21,18 @@ setuptools.setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ],
     keywords='fuzzy levenshtein mbleven wagner-fischer c++ approximate',
     python_requires='>=3.6',
     zip_safe=False,
     package_data={},
+    setup_requires=[
+        'pytest-runner',
+    ],
+    tests_require=[
+        'pytest',
+    ],
     include_package_data=True,
     ext_modules=[
         setuptools.Extension(
@@ -38,12 +45,9 @@ setuptools.setup(
             ),
             language='c++',
             extra_compile_args=[
-                '-Ofast',
                 '-std=c++17',
             ],
-            extra_link_args=[
-                '-lpthread',
-            ],
+            extra_link_args=[],
             include_dirs=[
                 'src',
             ],
