@@ -236,7 +236,7 @@ class Searcher {
         std::uint32_t tmp, i, j;
         char chr;
 
-        std::copy_n(std::begin(Searcher::arr_init), s2.size(), std::begin(arr));
+        std::copy_n(std::begin(Searcher::arr_init), s2.size() + 1, std::begin(arr));
 
         for (i = 1; i <= s1.size(); i++) {
             chr = s1[i - 1];
