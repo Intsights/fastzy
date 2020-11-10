@@ -5,7 +5,7 @@ import glob
 
 setuptools.setup(
     name='fastzy',
-    version='0.1.4',
+    version='0.2.0',
     author='Gal Ben David',
     author_email='gal@intsights.com',
     url='https://github.com/Intsights/fastzy',

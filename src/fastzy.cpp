@@ -1,14 +1,11 @@
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-#include <string>
-#include <cstring>
-#include <vector>
-#include <cstdlib>
-#include <fstream>
-#include <array>
 #include <algorithm>
+#include <array>
+#include <fstream>
 #include <future>
-#include <csignal>
+#include <vector>
+
+#include "pybind11/pybind11.h"
+#include "pybind11/stl.h"
 
 
 class Searcher {
@@ -17,25 +14,22 @@ class Searcher {
        std::string input_file_path,
        std::string separator
     ) {
-        std::ifstream input_file(
-            input_file_path,
-            std::ifstream::in | std::ifstream::binary
-        );
+        std::ifstream input_file(input_file_path);
         if (!input_file.good()) {
             throw std::runtime_error("Cannot open input file: " + input_file_path);
         }
 
-        std::string line;
+        this->separator = separator;
 
+        std::string line;
         if (separator == "") {
             this->separated = false;
-
             while (std::getline(input_file, line)) {
                 if (line == "") {
                     continue;
                 }
 
-                this->lines[line.size()].first.push_back(line);
+                this->lines[line.size()].append(line + "\n");
             }
         } else {
             this->separated = true;
@@ -49,11 +43,7 @@ class Searcher {
                 if (prefix_length == std::string::npos || prefix_length == 0) {
                     continue;
                 }
-                std::size_t suffix_length = line.size() - prefix_length;
-                std::string prefix = line.substr(0, prefix_length);
-                std::string suffix = line.substr(prefix_length, suffix_length);
-                this->lines[prefix.size()].first.push_back(prefix);
-                this->lines[prefix.size()].second.push_back(suffix);
+                this->lines[prefix_length].append(line + "\n");
             }
         }
     }
@@ -109,53 +99,55 @@ class Searcher {
         std::uint8_t lines_index
     ) {
         std::vector<std::string> results;
-        const auto & [prefixes, suffixes] = this->lines[lines_index];
+        std::string_view lines = this->lines[lines_index];
 
+        std::function<bool(std::string_view)> get_distance;
         if (max_distance > 3) {
-            if (lines_index < pattern.size()) {
-                for (std::uint32_t i = 0; i < prefixes.size(); i++) {
-                    if (this->wagner_fischer(pattern, prefixes[i]) <= max_distance) {
-                        if (this->separated) {
-                            results.push_back(prefixes[i] + suffixes[i]);
-                        } else {
-                            results.push_back(prefixes[i]);
-                        }
-                    }
-                }
-            } else {
-                for (std::uint32_t i = 0; i < prefixes.size(); i++) {
-                    if (this->wagner_fischer(prefixes[i], pattern) <= max_distance) {
-                        if (this->separated) {
-                            results.push_back(prefixes[i] + suffixes[i]);
-                        } else {
-                            results.push_back(prefixes[i]);
-                        }
-                    }
-                }
-            }
+            get_distance = [this, pattern, max_distance] (std::string_view str) {
+                return this->bounded_wagner_fischer(pattern, str, max_distance);
+            };
         } else {
-            if (lines_index < pattern.size()) {
-                for (std::uint32_t i = 0; i < prefixes.size(); i++) {
-                    if (this->mbleven(pattern, prefixes[i], max_distance)) {
-                        if (this->separated) {
-                            results.push_back(prefixes[i] + suffixes[i]);
-                        } else {
-                            results.push_back(prefixes[i]);
-                        }
-                    }
-                }
-            } else {
-                for (std::uint32_t i = 0; i < prefixes.size(); i++) {
-                    if (this->mbleven(prefixes[i], pattern, max_distance)) {
-                        if (this->separated) {
-                            results.push_back(prefixes[i] + suffixes[i]);
-                        } else {
-                            results.push_back(prefixes[i]);
-                        }
-                    }
-                }
-            }
+            get_distance = [this, pattern, max_distance] (std::string_view str) {
+                return this->mbleven(pattern, str, max_distance);
+            };
         }
+
+        std::size_t start_of_line = 0;
+        std::size_t end_of_line = 0;
+        while (start_of_line < lines.size()) {
+            if (this->separated) {
+                end_of_line = lines.find(this->separator, end_of_line);
+            } else {
+                end_of_line = lines.find('\n', end_of_line);
+            }
+            if (end_of_line == std::string::npos) {
+                break;
+            }
+
+            std::string_view current_line(
+                &lines[start_of_line],
+                end_of_line - start_of_line
+            );
+            if (this->separated) {
+                end_of_line = lines.find('\n', end_of_line);
+            }
+
+            if (get_distance(current_line)) {
+                if (this->separated) {
+                    std::string_view current_line(
+                        &lines[start_of_line],
+                        end_of_line - start_of_line
+                    );
+                    results.push_back(std::string(current_line));
+                } else {
+                    results.push_back(std::string(current_line));
+                }
+
+            }
+            end_of_line += 1;
+            start_of_line = end_of_line;
+        }
+
 
         return results;
     }
@@ -172,19 +164,22 @@ class Searcher {
         "ddd", NULL, NULL, NULL, NULL, NULL, NULL,
     };
     static constexpr int matrix_row_index[3] = {0, 2, 5};
-    inline bool mbleven(
-        std::string_view s1,
-        std::string_view s2,
-        const std::uint8_t k
+    static inline bool mbleven(
+        std::string_view first_string,
+        std::string_view second_string,
+        const std::uint8_t max_distance
     ) {
         const char * model;
-        std::int32_t row, col;
         uint8_t i;
         uint8_t j;
         uint8_t c;
 
-        row = matrix_row_index[k - 1] + (s1.size() - s2.size());
-        for (col = 0; col < 7; col++) {
+        if (first_string.length() < second_string.length()) {
+            first_string.swap(second_string);
+        }
+
+        std::int32_t row = matrix_row_index[max_distance - 1] + (first_string.size() - second_string.size());
+        for (std::int32_t col = 0; col < 7; col++) {
             model = mbleven_matrix[row * 7 + col];
             if (model == NULL) {
                 break;
@@ -194,8 +189,8 @@ class Searcher {
             j = 0;
             c = 0;
 
-            while (i < s1.size() && j < s2.size() && c <= k) {
-                if (s1[i] != s2[j]) {
+            while (i < first_string.size() && j < second_string.size() && c <= max_distance) {
+                if (first_string[i] != second_string[j]) {
                     switch (model[c]) {
                         case 'd':
                             i++;
@@ -205,7 +200,7 @@ class Searcher {
                             j++;
                             break;
                         case '\0':
-                            c = k + 1;
+                            c = max_distance + 1;
                             break;
                         case 'i':
                             j++;
@@ -218,7 +213,7 @@ class Searcher {
                 }
             }
 
-            if (c + (s1.size() - i) + (s2.size() - j) <= k) {
+            if (c + (first_string.size() - i) + (second_string.size() - j) <= max_distance) {
                 return true;
             }
         }
@@ -227,38 +222,39 @@ class Searcher {
     }
 
     static constexpr std::array<std::uint32_t, 100> arr_init = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99};
-    inline std::int32_t wagner_fischer(
-        const std::string_view s1,
-        const std::string_view s2
+    static inline bool bounded_wagner_fischer(
+        std::string_view first_string,
+        std::string_view second_string,
+        const std::uint8_t max_distance
     ) {
         std::array<std::uint32_t, 100> arr;
-        std::uint32_t dia;
-        std::uint32_t tmp, i, j;
-        char chr;
+        std::uint32_t diag;
+        std::uint32_t tmp;
 
-        std::copy_n(std::begin(Searcher::arr_init), s2.size() + 1, std::begin(arr));
+        std::copy_n(std::begin(Searcher::arr_init), second_string.size() + 1, std::begin(arr));
 
-        for (i = 1; i <= s1.size(); i++) {
-            chr = s1[i - 1];
-            dia = i - 1;
+        for (std::uint32_t i = 1; i <= first_string.size(); i++) {
+            diag = i - 1;
             arr[0] = i;
 
-            for (j = 1; j <= s2.size(); j++) {
+            for (std::uint32_t j = 1; j <= second_string.size(); j++) {
                 tmp = arr[j];
 
-                if (chr != s2[j - 1]) {
-                    arr[j] = std::min({arr[j], arr[j - 1], dia}) + 1;
+                if (first_string[i - 1] != second_string[j - 1]) {
+                    arr[j] = std::min({arr[j], arr[j - 1], diag}) + 1;
                 } else {
-                    arr[j] = dia;
+                    arr[j] = diag;
                 }
-                dia = tmp;
+                diag = tmp;
             }
         }
 
-        return arr[s2.size()];
+        return arr[second_string.size()] <= max_distance;
     }
 
-    std::unordered_map<std::uint32_t, std::pair<std::vector<std::string>, std::vector<std::string>>> lines;
+    std::string separator;
+    std::vector<char> file_data;
+    std::unordered_map<std::uint32_t, std::string> lines;
     bool separated;
 };
 
@@ -277,12 +273,22 @@ PYBIND11_MODULE(fastzy, m) {
             "Fuzzy search for a specific pattern",
             pybind11::arg("pattern"),
             pybind11::arg("max_distance")
-        )
-        .def(
-            "wagner_fischer",
-            &Searcher::wagner_fischer,
-            "Fuzzy search for a specific pattern",
-            pybind11::arg("pattern"),
+        );
+
+        m.def(
+            "mbleven",
+            &Searcher::mbleven,
+            "mbleven implementation taking two strings and a max distance and returns whether the distance between the strings is lower or equal to the max distance",
+            pybind11::arg("first_string"),
+            pybind11::arg("second_string"),
+            pybind11::arg("max_distance")
+        );
+        m.def(
+            "bounded_wagner_fischer",
+            &Searcher::bounded_wagner_fischer,
+            "Wagner-Fischer implementation taking two strings and a max distance and returns whether the distance between the strings is lower or equal to the max distance",
+            pybind11::arg("first_string"),
+            pybind11::arg("second_string"),
             pybind11::arg("max_distance")
         );
 }

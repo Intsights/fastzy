@@ -124,46 +124,196 @@ class FastzyTestCase(
             ],
         )
 
-    def test_wagner_fischer(
+    def test_bounded_wagner_fischer(
         self,
     ):
-        with tempfile.NamedTemporaryFile('w') as tmp_file:
-            tmp_file.flush()
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('a', '', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('', 'a', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('a', 'b', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('b', 'a', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('a', 'aa', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('aa', 'a', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('ab', 'ad', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('abcd', 'abdd', 1),
+        )
 
-            searcher = fastzy.Searcher(
-                input_file_path=tmp_file.name,
-                separator='',
-            )
+        self.assertFalse(
+            expr=fastzy.bounded_wagner_fischer('ab', 'cd', 1),
+        )
+        self.assertFalse(
+            expr=fastzy.bounded_wagner_fischer('abcd', 'abef', 1),
+        )
+        self.assertFalse(
+            expr=fastzy.bounded_wagner_fischer('abcdefghijk', 'abcdefghiii', 1),
+        )
 
-            self.assertEqual(
-                first=searcher.wagner_fischer('a', ''),
-                second=1,
-            )
-            self.assertEqual(
-                first=searcher.wagner_fischer('abc', ''),
-                second=3,
-            )
-            self.assertEqual(
-                first=searcher.wagner_fischer('islander', 'slander'),
-                second=1,
-            )
-            self.assertEqual(
-                first=searcher.wagner_fischer('mart', 'karma'),
-                second=3,
-            )
-            self.assertEqual(
-                first=searcher.wagner_fischer('sitting', 'kitten'),
-                second=3,
-            )
-            self.assertEqual(
-                first=searcher.wagner_fischer('football', 'ball'),
-                second=4,
-            )
-            self.assertEqual(
-                first=searcher.wagner_fischer('football', 'foot'),
-                second=4,
-            )
-            self.assertEqual(
-                first=searcher.wagner_fischer('intention', 'execution'),
-                second=5,
-            )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('', '', 0),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('1', '1', 0),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('1', '2', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('12', '12', 0),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('123', '12', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('1234', '1', 3),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('1234', '1233', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('1248', '1349', 2),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('', '12345', 5),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('5677', '1234', 4),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('123456', '12345', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('13579', '12345', 4),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('123', '', 3),
+        )
+        self.assertTrue(
+            expr=fastzy.bounded_wagner_fischer('kitten', 'mittens', 2),
+        )
+
+        self.assertFalse(
+            expr=fastzy.bounded_wagner_fischer('1234', '1', 2),
+        )
+        self.assertFalse(
+            expr=fastzy.bounded_wagner_fischer('1248', '1349', 1),
+        )
+        self.assertFalse(
+            expr=fastzy.bounded_wagner_fischer('', '12345', 4),
+        )
+        self.assertFalse(
+            expr=fastzy.bounded_wagner_fischer('5677', '1234', 3),
+        )
+        self.assertFalse(
+            expr=fastzy.bounded_wagner_fischer('13579', '12345', 3),
+        )
+        self.assertFalse(
+            expr=fastzy.bounded_wagner_fischer('123', '', 2),
+        )
+        self.assertFalse(
+            expr=fastzy.bounded_wagner_fischer('kitten', 'mittens', 1),
+        )
+
+    def test_mbleven(
+        self,
+    ):
+        self.assertTrue(
+            expr=fastzy.mbleven('a', '', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.mbleven('', 'a', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.mbleven('a', 'b', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.mbleven('b', 'a', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.mbleven('a', 'aa', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.mbleven('aa', 'a', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.mbleven('ab', 'ad', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.mbleven('abcd', 'abdd', 1),
+        )
+
+        self.assertFalse(
+            expr=fastzy.mbleven('ab', 'cd', 1),
+        )
+        self.assertFalse(
+            expr=fastzy.mbleven('abcd', 'abef', 1),
+        )
+        self.assertFalse(
+            expr=fastzy.mbleven('abcdefghijk', 'abcdefghiii', 1),
+        )
+
+        self.assertTrue(
+            expr=fastzy.mbleven('', '', 0),
+        )
+        self.assertTrue(
+            expr=fastzy.mbleven('1', '1', 0),
+        )
+        self.assertTrue(
+            expr=fastzy.mbleven('1', '2', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.mbleven('12', '12', 0),
+        )
+        self.assertTrue(
+            expr=fastzy.mbleven('123', '12', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.mbleven('1234', '1', 3),
+        )
+        self.assertTrue(
+            expr=fastzy.mbleven('1234', '1233', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.mbleven('1248', '1349', 2),
+        )
+        self.assertTrue(
+            expr=fastzy.mbleven('123456', '12345', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.mbleven('123', '', 3),
+        )
+        self.assertTrue(
+            expr=fastzy.mbleven('kitten', 'mittens', 2),
+        )
+
+        self.assertFalse(
+            expr=fastzy.mbleven('1234', '1', 2),
+        )
+        self.assertFalse(
+            expr=fastzy.mbleven('1248', '1349', 1),
+        )
+        self.assertFalse(
+            expr=fastzy.mbleven('5677', '1234', 3),
+        )
+        self.assertFalse(
+            expr=fastzy.mbleven('13579', '12345', 3),
+        )
+        self.assertFalse(
+            expr=fastzy.mbleven('123', '', 2),
+        )
+        self.assertFalse(
+            expr=fastzy.mbleven('kitten', 'mittens', 1),
+        )
