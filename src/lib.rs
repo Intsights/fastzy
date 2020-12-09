@@ -69,12 +69,10 @@ impl Searcher {
             if let Ok(line) = line {
                 if separator.is_empty() {
                     prefix_len = line.len();
+                } else if let Some(separator_pos) = line.find(separator) {
+                    prefix_len = separator_pos;
                 } else {
-                    if let Some(separator_pos) = line.find(separator) {
-                        prefix_len = separator_pos;
-                    } else {
-                        prefix_len = line.len();
-                    }
+                    prefix_len = line.len();
                 }
 
                 if max_length < prefix_len {
@@ -82,7 +80,7 @@ impl Searcher {
                 }
                 let index = indices.entry(prefix_len).or_insert(String::new());
                 index.push_str(&line);
-                index.push_str("\n");
+                index.push('\n');
             }
         }
 
@@ -119,20 +117,17 @@ impl Searcher {
                 .par_split('\n')
                 .for_each(
                     |x| {
+                        let matched: bool;
                         if self.separator.is_empty() {
-                            if distance_function(pattern, x, max_distance) {
-                                results.lock().push(x.to_string());
-                            }
+                            matched = distance_function(pattern, x, max_distance);
+                        } else if let Some(separator_pos) = x.find(&self.separator) {
+                            matched = distance_function(pattern, &x[0..separator_pos], max_distance);
                         } else {
-                            if let Some(separator_pos) = x.find(&self.separator) {
-                                if distance_function(pattern, &x[0..separator_pos], max_distance) {
-                                    results.lock().push(x.to_string());
-                                }
-                            } else {
-                                if distance_function(pattern, x, max_distance) {
-                                    results.lock().push(x.to_string());
-                                }
-                            }
+                            matched = distance_function(pattern, x, max_distance);
+                        }
+
+                        if matched {
+                            results.lock().push(x.to_string());
                         }
                     }
                 );
@@ -211,7 +206,7 @@ impl Searcher {
             }
         }
 
-        return false;
+        false
     }
 
     #[staticmethod]
@@ -220,7 +215,7 @@ impl Searcher {
         second_string: &str,
         max_distance: usize,
     ) -> bool {
-        let mut arr = WAGNER_FISCHER_ARR_INIT.clone();
+        let mut arr = WAGNER_FISCHER_ARR_INIT;
         let mut dia: usize;
         let mut tmp: usize;
 
@@ -240,7 +235,7 @@ impl Searcher {
             }
         }
 
-        return arr[second_string.len()] <= max_distance;
+        arr[second_string.len()] <= max_distance
     }
 }
 
