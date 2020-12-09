@@ -1,4 +1,0 @@
-include README.md
-include images/logo.png
-graft tests
-recursive-include src *

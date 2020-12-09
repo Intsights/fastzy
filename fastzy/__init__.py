@@ -1,0 +1,1 @@
+from .fastzy import Searcher
