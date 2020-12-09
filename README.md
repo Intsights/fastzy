@@ -3,7 +3,7 @@
         <img src="https://raw.githubusercontent.com/Intsights/fastzy/master/images/logo.png" alt="Logo">
     </a>
     <h3 align="center">
-        Python library for fast fuzzy search over a big file leveraging C++ and mbleven algorithm
+        Python library for fast fuzzy search over a big file written in Rust
     </h3>
 </p>
 
@@ -18,7 +18,6 @@
 - [About The Project](#about-the-project)
   - [Built With](#built-with)
   - [Performance](#performance)
-  - [Prerequisites](#prerequisites)
   - [Installation](#installation)
 - [Usage](#usage)
 - [License](#license)
@@ -27,40 +26,28 @@
 
 ## About The Project
 
-Fastzy is a library written in C++ used for searching over a file for a text based on its distance (levenshtein). The library uses mbleven algorithm for a k-bounded levenshtein distance measurement. When the max distance requested is above 3, where mbleven should be slower, the distance algorithm is replaced with Wagner–Fischer.The library at first, loads the whole file into memory, and created a lightweight index, based on the length of the line. It helps to narrow down the amount of lookups to only potential lines.
+Fastzy is a library written in Rust used for searching over a file for a text based on its distance (levenshtein). The library uses mbleven algorithm for a k-bounded levenshtein distance measurement. When the max distance requested is above 3, where mbleven is slower, the distance algorithm is replaced with Wagner–Fischer. The library loads the whole file into memory, and create a lightweight index, based on the lengths of the lines. It helps to narrow down the amount of lookups to only potential lines.
 
 
 ### Built With
 
 * [mbleven](https://github.com/fujimotos/mbleven)
+* [Pyo3](https://github.com/PyO3/pyo3)
 
 
 ### Performance
 
-| Library  | Text Size | Function | Time | #Results | Improvement Factor |
-| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
-| [python-Levenshtein](https://github.com/ztane/python-Levenshtein) | 500mb | Levenshtein.distance('text') | 24.2 s | 1249 | 1.0x |
-| [fastzy](https://github.com/Intsights/fastzy) | 500mb | fastzy.lookup('text) | 22.2 ms | 1249 | 1090.0x |
+| Library  | Text Size | Function | Time |
+| ------------- | ------------- | ------------- | ------------- |
+| [python-Levenshtein](https://github.com/ztane/python-Levenshtein) | 500mb | Levenshtein.distance('text') | 13.93s |
+| [fastzy](https://github.com/Intsights/fastzy) | 500mb | fastzy.search('text) | 0.023s |
 
-
-### Prerequisites
-
-In order to compile this package you should have GCC & Python development package installed.
-* Fedora
-```sh
-sudo dnf install python3-devel gcc-c++
-```
-* Ubuntu 18.04
-```sh
-sudo apt install python3-dev g++-9
-```
 
 ### Installation
 
 ```sh
 pip3 install fastzy
 ```
-
 
 
 ## Usage
@@ -70,12 +57,12 @@ import fastzy
 
 # open a file and index it in memory
 searcher = fastzy.Searcher(
-    input_file_path='input_text_file.txt',
+    file_path='input_text_file.txt',
     separator='',
 )
 
-# lookup for the input text 'text' with the distance of 1
-searcher.lookup(
+# search for the input text 'text' with the distance of 1
+searcher.search(
     pattern='text',
     max_distance=1,
 )

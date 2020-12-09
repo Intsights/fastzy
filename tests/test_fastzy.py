@@ -21,10 +21,10 @@ class FastzyTestCase(
             tmp_file.flush()
 
             searcher = fastzy.Searcher(
-                input_file_path=tmp_file.name,
+                file_path=tmp_file.name,
                 separator=separator,
             )
-            results = searcher.lookup(
+            results = searcher.search(
                 pattern=pattern,
                 max_distance=max_distance,
             )
@@ -40,7 +40,7 @@ class FastzyTestCase(
             expected_exception=RuntimeError,
         ):
             fastzy.Searcher(
-                input_file_path='missing_file_path',
+                file_path='missing_file_path',
                 separator='',
             )
 
@@ -59,6 +59,7 @@ class FastzyTestCase(
             'fourth.line',
             'fourthhhhh.line',
             'fifth.line',
+            'forthlines',
         ]
 
         self.assert_fuzzy_string_search(
@@ -76,6 +77,18 @@ class FastzyTestCase(
             max_distance=1,
             expected_results=[
                 'fourthline',
+                'forthlines',
+            ],
+        )
+
+        self.assert_fuzzy_string_search(
+            lines=lines,
+            separator='.',
+            pattern='forthline',
+            max_distance=1,
+            expected_results=[
+                'fourthline',
+                'forthlines',
             ],
         )
 
@@ -121,199 +134,200 @@ class FastzyTestCase(
                 'fourth.line',
                 'fourthhhhh.line',
                 'fifth.line',
+                'fourthline',
             ],
         )
 
-    def test_bounded_wagner_fischer(
+    def test_wagner_fischer(
         self,
     ):
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('a', '', 1),
+            expr=fastzy.Searcher.wagner_fischer('a', '', 1),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('', 'a', 1),
+            expr=fastzy.Searcher.wagner_fischer('', 'a', 1),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('a', 'b', 1),
+            expr=fastzy.Searcher.wagner_fischer('a', 'b', 1),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('b', 'a', 1),
+            expr=fastzy.Searcher.wagner_fischer('b', 'a', 1),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('a', 'aa', 1),
+            expr=fastzy.Searcher.wagner_fischer('a', 'aa', 1),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('aa', 'a', 1),
+            expr=fastzy.Searcher.wagner_fischer('aa', 'a', 1),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('ab', 'ad', 1),
+            expr=fastzy.Searcher.wagner_fischer('ab', 'ad', 1),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('abcd', 'abdd', 1),
+            expr=fastzy.Searcher.wagner_fischer('abcd', 'abdd', 1),
         )
 
         self.assertFalse(
-            expr=fastzy.bounded_wagner_fischer('ab', 'cd', 1),
+            expr=fastzy.Searcher.wagner_fischer('ab', 'cd', 1),
         )
         self.assertFalse(
-            expr=fastzy.bounded_wagner_fischer('abcd', 'abef', 1),
+            expr=fastzy.Searcher.wagner_fischer('abcd', 'abef', 1),
         )
         self.assertFalse(
-            expr=fastzy.bounded_wagner_fischer('abcdefghijk', 'abcdefghiii', 1),
+            expr=fastzy.Searcher.wagner_fischer('abcdefghijk', 'abcdefghiii', 1),
         )
 
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('', '', 0),
+            expr=fastzy.Searcher.wagner_fischer('', '', 0),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('1', '1', 0),
+            expr=fastzy.Searcher.wagner_fischer('1', '1', 0),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('1', '2', 1),
+            expr=fastzy.Searcher.wagner_fischer('1', '2', 1),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('12', '12', 0),
+            expr=fastzy.Searcher.wagner_fischer('12', '12', 0),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('123', '12', 1),
+            expr=fastzy.Searcher.wagner_fischer('123', '12', 1),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('1234', '1', 3),
+            expr=fastzy.Searcher.wagner_fischer('1234', '1', 3),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('1234', '1233', 1),
+            expr=fastzy.Searcher.wagner_fischer('1234', '1233', 1),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('1248', '1349', 2),
+            expr=fastzy.Searcher.wagner_fischer('1248', '1349', 2),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('', '12345', 5),
+            expr=fastzy.Searcher.wagner_fischer('', '12345', 5),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('5677', '1234', 4),
+            expr=fastzy.Searcher.wagner_fischer('5677', '1234', 4),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('123456', '12345', 1),
+            expr=fastzy.Searcher.wagner_fischer('123456', '12345', 1),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('13579', '12345', 4),
+            expr=fastzy.Searcher.wagner_fischer('13579', '12345', 4),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('123', '', 3),
+            expr=fastzy.Searcher.wagner_fischer('123', '', 3),
         )
         self.assertTrue(
-            expr=fastzy.bounded_wagner_fischer('kitten', 'mittens', 2),
+            expr=fastzy.Searcher.wagner_fischer('kitten', 'mittens', 2),
         )
 
         self.assertFalse(
-            expr=fastzy.bounded_wagner_fischer('1234', '1', 2),
+            expr=fastzy.Searcher.wagner_fischer('1234', '1', 2),
         )
         self.assertFalse(
-            expr=fastzy.bounded_wagner_fischer('1248', '1349', 1),
+            expr=fastzy.Searcher.wagner_fischer('1248', '1349', 1),
         )
         self.assertFalse(
-            expr=fastzy.bounded_wagner_fischer('', '12345', 4),
+            expr=fastzy.Searcher.wagner_fischer('', '12345', 4),
         )
         self.assertFalse(
-            expr=fastzy.bounded_wagner_fischer('5677', '1234', 3),
+            expr=fastzy.Searcher.wagner_fischer('5677', '1234', 3),
         )
         self.assertFalse(
-            expr=fastzy.bounded_wagner_fischer('13579', '12345', 3),
+            expr=fastzy.Searcher.wagner_fischer('13579', '12345', 3),
         )
         self.assertFalse(
-            expr=fastzy.bounded_wagner_fischer('123', '', 2),
+            expr=fastzy.Searcher.wagner_fischer('123', '', 2),
         )
         self.assertFalse(
-            expr=fastzy.bounded_wagner_fischer('kitten', 'mittens', 1),
+            expr=fastzy.Searcher.wagner_fischer('kitten', 'mittens', 1),
         )
 
     def test_mbleven(
         self,
     ):
         self.assertTrue(
-            expr=fastzy.mbleven('a', '', 1),
+            expr=fastzy.Searcher.mbleven('a', '', 1),
         )
         self.assertTrue(
-            expr=fastzy.mbleven('', 'a', 1),
+            expr=fastzy.Searcher.mbleven('', 'a', 1),
         )
         self.assertTrue(
-            expr=fastzy.mbleven('a', 'b', 1),
+            expr=fastzy.Searcher.mbleven('a', 'b', 1),
         )
         self.assertTrue(
-            expr=fastzy.mbleven('b', 'a', 1),
+            expr=fastzy.Searcher.mbleven('b', 'a', 1),
         )
         self.assertTrue(
-            expr=fastzy.mbleven('a', 'aa', 1),
+            expr=fastzy.Searcher.mbleven('a', 'aa', 1),
         )
         self.assertTrue(
-            expr=fastzy.mbleven('aa', 'a', 1),
+            expr=fastzy.Searcher.mbleven('aa', 'a', 1),
         )
         self.assertTrue(
-            expr=fastzy.mbleven('ab', 'ad', 1),
+            expr=fastzy.Searcher.mbleven('ab', 'ad', 1),
         )
         self.assertTrue(
-            expr=fastzy.mbleven('abcd', 'abdd', 1),
+            expr=fastzy.Searcher.mbleven('abcd', 'abdd', 1),
         )
 
         self.assertFalse(
-            expr=fastzy.mbleven('ab', 'cd', 1),
+            expr=fastzy.Searcher.mbleven('ab', 'cd', 1),
         )
         self.assertFalse(
-            expr=fastzy.mbleven('abcd', 'abef', 1),
+            expr=fastzy.Searcher.mbleven('abcd', 'abef', 1),
         )
         self.assertFalse(
-            expr=fastzy.mbleven('abcdefghijk', 'abcdefghiii', 1),
+            expr=fastzy.Searcher.mbleven('abcdefghijk', 'abcdefghiii', 1),
         )
 
         self.assertTrue(
-            expr=fastzy.mbleven('', '', 0),
+            expr=fastzy.Searcher.mbleven('', '', 0),
         )
         self.assertTrue(
-            expr=fastzy.mbleven('1', '1', 0),
+            expr=fastzy.Searcher.mbleven('1', '1', 0),
         )
         self.assertTrue(
-            expr=fastzy.mbleven('1', '2', 1),
+            expr=fastzy.Searcher.mbleven('1', '2', 1),
         )
         self.assertTrue(
-            expr=fastzy.mbleven('12', '12', 0),
+            expr=fastzy.Searcher.mbleven('12', '12', 0),
         )
         self.assertTrue(
-            expr=fastzy.mbleven('123', '12', 1),
+            expr=fastzy.Searcher.mbleven('123', '12', 1),
         )
         self.assertTrue(
-            expr=fastzy.mbleven('1234', '1', 3),
+            expr=fastzy.Searcher.mbleven('1234', '1', 3),
         )
         self.assertTrue(
-            expr=fastzy.mbleven('1234', '1233', 1),
+            expr=fastzy.Searcher.mbleven('1234', '1233', 1),
         )
         self.assertTrue(
-            expr=fastzy.mbleven('1248', '1349', 2),
+            expr=fastzy.Searcher.mbleven('1248', '1349', 2),
         )
         self.assertTrue(
-            expr=fastzy.mbleven('123456', '12345', 1),
+            expr=fastzy.Searcher.mbleven('123456', '12345', 1),
         )
         self.assertTrue(
-            expr=fastzy.mbleven('123', '', 3),
+            expr=fastzy.Searcher.mbleven('123', '', 3),
         )
         self.assertTrue(
-            expr=fastzy.mbleven('kitten', 'mittens', 2),
+            expr=fastzy.Searcher.mbleven('kitten', 'mittens', 2),
         )
 
         self.assertFalse(
-            expr=fastzy.mbleven('1234', '1', 2),
+            expr=fastzy.Searcher.mbleven('1234', '1', 2),
         )
         self.assertFalse(
-            expr=fastzy.mbleven('1248', '1349', 1),
+            expr=fastzy.Searcher.mbleven('1248', '1349', 1),
         )
         self.assertFalse(
-            expr=fastzy.mbleven('5677', '1234', 3),
+            expr=fastzy.Searcher.mbleven('5677', '1234', 3),
         )
         self.assertFalse(
-            expr=fastzy.mbleven('13579', '12345', 3),
+            expr=fastzy.Searcher.mbleven('13579', '12345', 3),
         )
         self.assertFalse(
-            expr=fastzy.mbleven('123', '', 2),
+            expr=fastzy.Searcher.mbleven('123', '', 2),
         )
         self.assertFalse(
-            expr=fastzy.mbleven('kitten', 'mittens', 1),
+            expr=fastzy.Searcher.mbleven('kitten', 'mittens', 1),
         )
