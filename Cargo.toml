@@ -1,6 +1,6 @@
 [package]
 name = "fastzy"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Gal Ben David <gal@intsights.com>"]
 edition = "2018"
 description = "Python library for fast fuzzy search over a big file written in Rust"
@@ -33,7 +33,7 @@ parking_lot = "0.11"
 rayon = "1.5"
 
 [dependencies.pyo3]
-version = "0.12.4"
+version = "0.13.1"
 features = ["extension-module"]
 
 [profile.release]

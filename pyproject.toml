@@ -14,7 +14,7 @@ strip = true
 
 [tool.poetry]
 name = "fastzy"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Gal Ben David <gal@intsights.com>"]
 description = "Python library for fast fuzzy search over a big file written in Rust"
 readme = "README.md"
