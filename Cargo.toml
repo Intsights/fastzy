@@ -1,6 +1,6 @@
 [package]
 name = "fastzy"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["Gal Ben David <gal@intsights.com>"]
 edition = "2018"
 description = "Python library for fast fuzzy search over a big file written in Rust"
@@ -8,16 +8,19 @@ readme = "README.md"
 repository = "https://github.com/intsights/fastzy"
 homepage = "https://github.com/intsights/fastzy"
 license = "MIT"
-keywords = ["fuzzy", "levenshtein", "rust"]
+keywords = [
+    "fuzzy",
+    "levenshtein",
+    "rust",
+]
 
 [package.metadata.maturin]
-requires-python = ">=3.6"
+requires-python = ">=3.7"
 classifier = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: MacOS",
     "Operating System :: Microsoft",
     "Operating System :: POSIX :: Linux",
-    "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
@@ -33,7 +36,7 @@ parking_lot = "0.11"
 rayon = "1.5"
 
 [dependencies.pyo3]
-version = "0.13.1"
+version = "0.13.2"
 features = ["extension-module"]
 
 [profile.release]

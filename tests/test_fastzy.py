@@ -218,6 +218,12 @@ class FastzyTestCase(
         self.assertTrue(
             expr=fastzy.Searcher.wagner_fischer('kitten', 'mittens', 2),
         )
+        self.assertTrue(
+            expr=fastzy.Searcher.wagner_fischer('אבא', 'אמא', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.Searcher.wagner_fischer('אﺑא', 'אמא', 1),
+        )
 
         self.assertFalse(
             expr=fastzy.Searcher.wagner_fischer('1234', '1', 2),
@@ -311,6 +317,12 @@ class FastzyTestCase(
         )
         self.assertTrue(
             expr=fastzy.Searcher.mbleven('kitten', 'mittens', 2),
+        )
+        self.assertTrue(
+            expr=fastzy.Searcher.mbleven('אבא', 'אמא', 1),
+        )
+        self.assertTrue(
+            expr=fastzy.Searcher.mbleven('אﺑא', 'אמא', 1),
         )
 
         self.assertFalse(

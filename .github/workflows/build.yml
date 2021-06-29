@@ -1,6 +1,5 @@
 name: Build
 on: [push, pull_request]
-
 jobs:
   lint:
     if: github.event_name == 'push' && !startsWith(github.event.ref, 'refs/tags')
@@ -25,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.7, 3.8, 3.9]
         os: [ubuntu-latest , macos-latest, windows-latest]
     steps:
       - name: Checkout
@@ -36,9 +35,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Run image
         uses: abatilo/actions-poetry@v2.0.0
-      - name: Install latest rust
+      - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
+          profile: minimal
           toolchain: stable
           override: true
       - name: Install dependencies
@@ -46,4 +46,4 @@ jobs:
       - name: Build Python package
         run: poetry run maturin develop
       - name: Test
-        run: poetry run pytest tests
+        run: poetry run pytest -Werror tests

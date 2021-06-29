@@ -21,18 +21,17 @@ const WAGNER_FISCHER_ARR_INIT: [usize;100] = [
     81, 82, 83, 84, 85, 86, 87, 88, 89, 90,
     91, 92, 93, 94, 95, 96, 97, 98, 99
 ];
-const MBLEVEN_MATRIX: [&[u8];63] = [
-    b"re", b"", b"", b"", b"", b"", b"",
-    b"de", b"", b"", b"", b"", b"", b"",
-    b"rre", b"ide", b"die", b"", b"", b"", b"",
-    b"rde", b"dre", b"", b"", b"", b"", b"",
-    b"dde", b"", b"", b"", b"", b"", b"",
-    b"rrre", b"idre", b"irde", b"ride", b"rdie", b"drie", b"dire",
-    b"rrde", b"rdre", b"drre", b"idde", b"dide", b"ddie", b"",
-    b"rdde", b"drde", b"ddre", b"", b"", b"", b"",
-    b"ddde", b"", b"", b"", b"", b"", b"",
+const MBLEVEN_MATRIX: [u8;72] = [
+    3,   0,  0,  0,  0,  0,  0,  0,
+    1,   0,  0,  0,  0,  0,  0,  0,
+    15,  9,  6,  0,  0,  0,  0,  0,
+    13,  7,  0,  0,  0,  0,  0,  0,
+    5,   0,  0,  0,  0,  0,  0,  0,
+    63, 39, 45, 57, 54, 30, 27,  0,
+    61, 55, 31, 37, 25, 22,  0,  0,
+    53, 29, 23,  0,  0,  0,  0,  0,
+    21,  0,  0,  0,  0,  0,  0,  0,
 ];
-const MATRIX_ROW_INDEX: [usize;3] = [0, 2, 5];
 
 #[pyclass]
 #[text_signature = "(file_path, separator, /)"]
@@ -65,23 +64,21 @@ impl Searcher {
         let input_file = BufReader::new(input_file);
 
         let mut prefix_len;
-        for line in input_file.lines() {
-            if let Ok(line) = line {
-                if separator.is_empty() {
-                    prefix_len = line.len();
-                } else if let Some(separator_pos) = line.find(separator) {
-                    prefix_len = separator_pos;
-                } else {
-                    prefix_len = line.len();
-                }
-
-                if max_length < prefix_len {
-                    max_length = prefix_len;
-                }
-                let index = indices.entry(prefix_len).or_insert(String::new());
-                index.push_str(&line);
-                index.push('\n');
+        for line in input_file.lines().flatten() {
+            if separator.is_empty() {
+                prefix_len = line.len();
+            } else if let Some(separator_pos) = line.find(separator) {
+                prefix_len = separator_pos;
+            } else {
+                prefix_len = line.len();
             }
+
+            if max_length < prefix_len {
+                max_length = prefix_len;
+            }
+            let index = indices.entry(prefix_len).or_insert_with(String::new);
+            index.push_str(&line);
+            index.push('\n');
         }
 
         Ok(
@@ -140,68 +137,83 @@ impl Searcher {
     }
 
     #[staticmethod]
-    fn mbleven(
-        first_string: &str,
-        second_string: &str,
+    fn mbleven<'a>(
+        mut first_string: &'a str,
+        mut second_string: &'a str,
         max_distance: usize,
     ) -> bool {
-        let mut i: usize;
-        let mut j: usize;
-        let mut c: usize;
+        let mut m: u8;
+        let mut differences: usize;
 
-        let longer_str;
-        let shorter_str;
-        if first_string.len() > second_string.len() {
-            longer_str = first_string;
-            shorter_str = second_string;
-        } else {
-            longer_str = second_string;
-            shorter_str = first_string;
+        if max_distance == 0 {
+            return first_string == second_string;
         }
 
-        let matrix_row_index = if max_distance == 0 {
-            0
-        } else {
-            max_distance - 1
-        };
+        let mut first_string_len = first_string.chars().count();
+        let mut second_string_len = second_string.chars().count();
 
-        let row = MATRIX_ROW_INDEX[matrix_row_index] + (longer_str.len() - shorter_str.len());
-        for col in 0..7 {
-            let model = MBLEVEN_MATRIX[row * 7 + col];
-            if model.is_empty() {
-                break;
-            }
+        if first_string_len < second_string_len {
+            std::mem::swap(&mut first_string, &mut second_string);
+            std::mem::swap(&mut first_string_len, &mut second_string_len);
+        }
 
-            i = 0;
-            j = 0;
-            c = 0;
+        let strings_len_difference = first_string_len - second_string_len;
+        if max_distance < strings_len_difference {
+            return false;
+        }
 
-            while i < longer_str.len() && j < shorter_str.len() && c <= max_distance {
-                if longer_str.as_bytes()[i] != shorter_str.as_bytes()[j] {
-                    match model[c] {
-                        b'd' => {
-                            i += 1;
-                        },
-                        b'r' => {
-                            i += 1;
-                            j += 1;
-                        },
-                        b'i' => {
-                            j += 1;
-                        },
-                        b'e' => {
-                            c = max_distance + 1;
-                        },
-                        _ => (),
-                    }
-                    c += 1;
-                } else {
-                    i += 1;
-                    j += 1;
+        let mut pos: usize = ((max_distance + max_distance.pow(2)) / 2 - 1 + strings_len_difference) * 8;
+        while MBLEVEN_MATRIX[pos] > 0 {
+            m = MBLEVEN_MATRIX[pos];
+            pos += 1;
+            differences = 0;
+
+            let mut first_string_chars = first_string.chars();
+            let mut second_string_chars = second_string.chars();
+            let mut first_string_current_char = first_string_chars.next();
+            let mut second_string_current_char = second_string_chars.next();
+
+            loop {
+                match (first_string_current_char, second_string_current_char) {
+                    (Some(first_string_char), Some(second_string_char)) => {
+                        if first_string_char != second_string_char {
+                            differences += 1;
+
+                            if m == 0 {
+                                differences += first_string_chars.count() + second_string_chars.count() + 2;
+
+                                break;
+                            }
+                            if m & 1  > 0 {
+                                first_string_current_char = first_string_chars.next();
+                            }
+                            if m & 2  > 0 {
+                                second_string_current_char = second_string_chars.next();
+                            }
+
+                            m >>= 2;
+                        } else {
+                            first_string_current_char = first_string_chars.next();
+                            second_string_current_char = second_string_chars.next();
+                        }
+                    },
+                    (Some(_first_string_char), None) => {
+                        differences += first_string_chars.count() + 1;
+
+                        break;
+                    },
+                    (None, Some(_second_string_char)) => {
+                        differences += second_string_chars.count() + 1;
+
+                        break;
+                    },
+                    (None, None) => {
+                        break;
+                    },
                 }
             }
 
-            if c + (longer_str.len() - i) + (shorter_str.len() - j) <= max_distance {
+            if differences <= max_distance {
                 return true;
             }
         }
@@ -219,23 +231,28 @@ impl Searcher {
         let mut dia: usize;
         let mut tmp: usize;
 
-        for i in 1..first_string.len() + 1 {
-            dia = i - 1;
-            arr[0] = i;
+        if max_distance == 0 {
+            return first_string == second_string;
+        }
 
-            for j in 1..second_string.len() + 1 {
-                tmp = arr[j];
+        for (i, first_string_current_char) in first_string.chars().enumerate() {
+            dia = i;
+            arr[0] = i + 1;
 
-                if first_string.as_bytes()[i - 1] != second_string.as_bytes()[j - 1] {
-                    arr[j] = min(min(arr[j], arr[j - 1]), dia) + 1;
+            for (j, second_string_current_char) in second_string.chars().enumerate() {
+                tmp = arr[j + 1];
+
+                if first_string_current_char != second_string_current_char {
+                    arr[j + 1] = min(min(arr[j + 1], arr[j]), dia) + 1;
                 } else {
-                    arr[j] = dia;
+                    arr[j + 1] = dia;
                 }
+
                 dia = tmp;
             }
         }
 
-        arr[second_string.len()] <= max_distance
+        arr[second_string.chars().count()] <= max_distance
     }
 }
 

@@ -14,7 +14,7 @@ strip = true
 
 [tool.poetry]
 name = "fastzy"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["Gal Ben David <gal@intsights.com>"]
 description = "Python library for fast fuzzy search over a big file written in Rust"
 readme = "README.md"
@@ -31,7 +31,6 @@ classifiers = [
     "Operating System :: MacOS",
     "Operating System :: Microsoft",
     "Operating System :: POSIX :: Linux",
-    "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
@@ -39,7 +38,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
