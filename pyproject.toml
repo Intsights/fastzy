@@ -1,5 +1,5 @@
 [build-system]
-requires = ["maturin"]
+requires = ["maturin>=0.11,<0.12"]
 build-backend = "maturin"
 
 [tool.maturin]
@@ -9,12 +9,11 @@ sdist-include = [
     "fastzy/*.py",
     "fastzy/*.pyi"
 ]
-manylinux = "2014"
 strip = true
 
 [tool.poetry]
 name = "fastzy"
-version = "0.3.2"
+version = "0.4.0"
 authors = ["Gal Ben David <gal@intsights.com>"]
 description = "Python library for fast fuzzy search over a big file written in Rust"
 readme = "README.md"
@@ -34,6 +33,7 @@ classifiers = [
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Rust",
 ]
 
