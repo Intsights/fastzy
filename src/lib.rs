@@ -67,9 +67,7 @@ impl Searcher {
 
         let input_file = match File::open(file_path) {
             Ok(input_file) => BufReader::new(input_file),
-            Err(error) => return Err(
-                exceptions::PyRuntimeError::new_err(error)
-            ),
+            Err(error) => return Err(exceptions::PyRuntimeError::new_err(error)),
         };
 
         let separator_finder = Finder::new(separator.as_bytes());
@@ -188,7 +186,7 @@ impl Searcher {
     ) -> bool {
         let mut differences: usize;
 
-        for mut m in changes_matrix.iter().cloned() {
+        for mut m in changes_matrix.iter().copied() {
             differences = 0;
 
             let mut first_string_chars = first_string.chars();
@@ -206,14 +204,14 @@ impl Searcher {
                             }
 
                             if m == 0 {
-                                differences += first_string_chars.count() + second_string_chars.count() + 2;
+                                differences += 2;
 
                                 break;
                             }
-                            if m & 1  > 0 {
+                            if m & 1 > 0 {
                                 first_string_current_char = first_string_chars.next();
                             }
-                            if m & 2  > 0 {
+                            if m & 2 > 0 {
                                 second_string_current_char = second_string_chars.next();
                             }
 
@@ -273,7 +271,7 @@ impl Searcher {
         }
 
         let changes_matrix = MBLEVEN_MATRIX[max_distance][strings_len_difference];
-        for mut m in changes_matrix.iter().cloned() {
+        for mut m in changes_matrix.iter().copied() {
             differences = 0;
 
             let mut first_string_chars = first_string.chars();
@@ -291,14 +289,14 @@ impl Searcher {
                             }
 
                             if m == 0 {
-                                differences += first_string_chars.count() + second_string_chars.count() + 2;
+                                differences += 2;
 
                                 break;
                             }
-                            if m & 1  > 0 {
+                            if m & 1 > 0 {
                                 first_string_current_char = first_string_chars.next();
                             }
-                            if m & 2  > 0 {
+                            if m & 2 > 0 {
                                 second_string_current_char = second_string_chars.next();
                             }
 
