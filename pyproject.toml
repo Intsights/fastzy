@@ -9,7 +9,6 @@ sdist-include = [
     "fastzy/*.py",
     "fastzy/*.pyi"
 ]
-strip = true
 
 [tool.poetry]
 name = "fastzy"

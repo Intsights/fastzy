@@ -51,7 +51,7 @@ const MBLEVEN_MATRIX: [[&[u8]; 4]; 4] = [
 
 #[pyclass]
 struct Searcher {
-    indices: HashMap<usize, String>,
+    indices: HashMap<usize, (String, Vec<usize>)>,
     max_length: usize,
 }
 
@@ -62,7 +62,7 @@ impl Searcher {
         file_path: &str,
         separator: &str,
     ) -> PyResult<Self> {
-        let mut indices = HashMap::<usize, String>::new();
+        let mut indices = HashMap::<usize, (String, Vec<usize>)>::new();
         let mut max_length = 0;
 
         let input_file = match File::open(file_path) {
@@ -84,9 +84,11 @@ impl Searcher {
             if max_length < prefix_len {
                 max_length = prefix_len;
             }
-            let index = indices.entry(prefix_len).or_insert_with(String::new);
+            let (index, start_positions) = indices.entry(prefix_len).or_insert_with(|| (String::new(), Vec::new()));
+            start_positions.push(index.len());
             index.push_str(&line);
             index.push('\n');
+
         }
 
         Ok(
@@ -109,18 +111,17 @@ impl Searcher {
 
         if max_distance > 3 {
             for current_len in from_len..to_len + 1 {
-                if let Some(index) = self.indices.get(&current_len) {
-                    index
-                    .trim_end()
-                    .par_split('\n')
+                if let Some((index, start_positions)) = self.indices.get(&current_len) {
+                    start_positions
+                    .par_iter()
                     .for_each(
-                        |line: &str| {
+                        |&start_position| {
                             if Searcher::wagner_fischer(
                                 pattern,
-                                unsafe { line.get_unchecked(0..current_len) },
+                                unsafe { index.get_unchecked(start_position..start_position + current_len) },
                                 max_distance,
                             ) {
-                                results.lock().push(line.to_string());
+                                results.lock().push(unsafe { index.get_unchecked(start_position..start_position + current_len) }.to_string());
                             }
                         }
                     );
@@ -131,19 +132,18 @@ impl Searcher {
                 if current_len < pattern_len {
                     let changes_matrix = MBLEVEN_MATRIX[max_distance][pattern_len - current_len];
 
-                    if let Some(index) = self.indices.get(&current_len) {
-                        index
-                        .trim_end()
-                        .par_split('\n')
+                    if let Some((index, start_positions)) = self.indices.get(&current_len) {
+                        start_positions
+                        .par_iter()
                         .for_each(
-                            |line| {
+                            |&start_position| {
                                 if self.fast_mbleven(
                                     pattern,
-                                    unsafe { line.get_unchecked(0..current_len) },
+                                    unsafe { index.get_unchecked(start_position..start_position + current_len) },
                                     changes_matrix,
                                     max_distance,
                                 ) {
-                                    results.lock().push(line.to_string());
+                                    results.lock().push(unsafe { index.get_unchecked(start_position..start_position + current_len) }.to_string());
                                 }
                             }
                         );
@@ -151,19 +151,18 @@ impl Searcher {
                 } else {
                     let changes_matrix = MBLEVEN_MATRIX[max_distance][current_len - pattern_len];
 
-                    if let Some(index) = self.indices.get(&current_len) {
-                        index
-                        .trim_end()
-                        .par_split('\n')
+                    if let Some((index, start_positions)) = self.indices.get(&current_len) {
+                        start_positions
+                        .par_iter()
                         .for_each(
-                            |line| {
+                            |&start_position| {
                                 if self.fast_mbleven(
-                                    unsafe { line.get_unchecked(0..current_len) },
+                                    unsafe { index.get_unchecked(start_position..start_position + current_len) },
                                     pattern,
                                     changes_matrix,
                                     max_distance,
                                 ) {
-                                    results.lock().push(line.to_string());
+                                    results.lock().push(unsafe { index.get_unchecked(start_position..start_position + current_len) }.to_string());
                                 }
                             }
                         );
@@ -198,16 +197,13 @@ impl Searcher {
                 match (first_string_current_char, second_string_current_char) {
                     (Some(first_string_char), Some(second_string_char)) => {
                         if first_string_char != second_string_char {
-                            differences += 1;
-                            if differences > max_distance {
-                                break;
-                            }
-
                             if m == 0 {
                                 differences += 2;
 
                                 break;
                             }
+
+                            differences += 1;
                             if m & 1 > 0 {
                                 first_string_current_char = first_string_chars.next();
                             }
@@ -283,16 +279,13 @@ impl Searcher {
                 match (first_string_current_char, second_string_current_char) {
                     (Some(first_string_char), Some(second_string_char)) => {
                         if first_string_char != second_string_char {
-                            differences += 1;
-                            if differences > max_distance {
-                                break;
-                            }
-
                             if m == 0 {
                                 differences += 2;
 
                                 break;
                             }
+
+                            differences += 1;
                             if m & 1 > 0 {
                                 first_string_current_char = first_string_chars.next();
                             }
