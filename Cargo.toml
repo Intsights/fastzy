@@ -1,8 +1,8 @@
 [package]
 name = "fastzy"
-version = "0.3.2"
+version = "0.4.0"
 authors = ["Gal Ben David <gal@intsights.com>"]
-edition = "2018"
+edition = "2021"
 description = "Python library for fast fuzzy search over a big file written in Rust"
 readme = "README.md"
 repository = "https://github.com/intsights/fastzy"
@@ -24,6 +24,7 @@ classifier = [
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Rust",
 ]
 
@@ -32,11 +33,15 @@ name = "fastzy"
 crate-type = ["cdylib"]
 
 [dependencies]
+bstr = "0.2"
+bytecount = "0.6"
+memchr = "2.4"
 parking_lot = "0.11"
 rayon = "1.5"
+simdutf8 = "0.1"
 
 [dependencies.pyo3]
-version = "0.13.2"
+version = "0.15.1"
 features = ["extension-module"]
 
 [profile.release]
