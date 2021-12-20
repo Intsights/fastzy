@@ -8,7 +8,7 @@
 </p>
 
 ![license](https://img.shields.io/badge/MIT-License-blue)
-![Python](https://img.shields.io/badge/Python-3.6%20%7C%203.7%20%7C%203.8%20%7C%20pypy3-blue)
+![Python](https://img.shields.io/badge/Python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10-blue)
 ![Build](https://github.com/Intsights/fastzy/workflows/Build/badge.svg)
 [![PyPi](https://img.shields.io/pypi/v/fastzy.svg)](https://pypi.org/project/fastzy/)
 
@@ -26,7 +26,7 @@
 
 ## About The Project
 
-Fastzy is a library written in Rust used for searching over a file for a text based on its distance (levenshtein). The library uses mbleven algorithm for a k-bounded levenshtein distance measurement. When the max distance requested is above 3, where mbleven is slower, the distance algorithm is replaced with Wagner–Fischer. The library loads the whole file into memory, and create a lightweight index, based on the lengths of the lines. It helps to narrow down the amount of lookups to only potential lines.
+Fastzy is a library written in Rust that can search through a file looking for text based on its distance (Levenshtein). For measuring the Levenshtein distance, the library uses mbleven's algorithm. In situations where the requested distance exceeds 3, where mbleven is slower, Wagner-Fischer is used instead of mbleven. This library loads the whole file into memory, and creates a lightweight index based on the length of the lines. The result is that only potential lines are looked up, opposed to a large number of lines.
 
 
 ### Built With
@@ -37,10 +37,10 @@ Fastzy is a library written in Rust used for searching over a file for a text ba
 
 ### Performance
 
-| Library  | Text Size | Function | Time |
-| ------------- | ------------- | ------------- | ------------- |
-| [python-Levenshtein](https://github.com/ztane/python-Levenshtein) | 500mb | Levenshtein.distance('text') | 13.93s |
-| [fastzy](https://github.com/Intsights/fastzy) | 500mb | fastzy.search('text) | 0.023s |
+| Library | Function | Time |
+| ------------- | ------------- | ------------- |
+| [polyleven](https://github.com/ztane/python-Levenshtein) | polyleven.levenshtein('text') | 8.48s |
+| [fastzy](https://github.com/Intsights/fastzy) | fastzy.search('text) | 0.003s |
 
 
 ### Installation

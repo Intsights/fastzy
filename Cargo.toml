@@ -45,6 +45,5 @@ version = "0.15.1"
 features = ["extension-module"]
 
 [profile.release]
-# lto = true
-# panic = "abort"
-debug = true
+lto = true
+panic = "abort"
