@@ -1,3 +1,4 @@
+use bstr::io::BufReadExt;
 use memchr::memmem::Finder;
 use parking_lot::Mutex;
 use pyo3::exceptions;
@@ -7,7 +8,6 @@ use std::cmp::{min, max};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
-use std::io::prelude::*;
 use std::sync::Arc;
 
 const WAGNER_FISCHER_ARR_INIT: [usize;100] = [
@@ -51,7 +51,7 @@ const MBLEVEN_MATRIX: [[&[u8]; 4]; 4] = [
 
 #[pyclass]
 struct Searcher {
-    indices: HashMap<usize, (String, Vec<usize>)>,
+    indices: HashMap<usize, (String, Vec<u32>)>,
     max_length: usize,
 }
 
@@ -62,7 +62,7 @@ impl Searcher {
         file_path: &str,
         separator: &str,
     ) -> PyResult<Self> {
-        let mut indices = HashMap::<usize, (String, Vec<usize>)>::new();
+        let mut indices = HashMap::<usize, (String, Vec<u32>)>::new();
         let mut max_length = 0;
 
         let input_file = match File::open(file_path) {
@@ -71,25 +71,29 @@ impl Searcher {
         };
 
         let separator_finder = Finder::new(separator.as_bytes());
-        let mut prefix_len;
-        for line in input_file.lines().flatten() {
-            if separator.is_empty() {
-                prefix_len = line.chars().count();
-            } else if let Some(separator_pos) = separator_finder.find(line.as_bytes()) {
-                prefix_len = line[..separator_pos].chars().count();
-            } else {
-                prefix_len = line.chars().count();
-            }
+        let mut prefix_len = 0;
+        input_file.for_byte_line(
+            |line| {
+                if separator.is_empty() {
+                    prefix_len = bytecount::num_chars(line);
+                } else if let Some(separator_pos) = separator_finder.find(line) {
+                    prefix_len = bytecount::num_chars(unsafe { line.get_unchecked(..separator_pos) });
+                } else {
+                    prefix_len = bytecount::num_chars(line);
+                }
 
-            if max_length < prefix_len {
-                max_length = prefix_len;
-            }
-            let (index, start_positions) = indices.entry(prefix_len).or_insert_with(|| (String::new(), Vec::new()));
-            start_positions.push(index.len());
-            index.push_str(&line);
-            index.push('\n');
+                if max_length < prefix_len {
+                    max_length = prefix_len;
+                }
+                let (index, start_positions) = indices.entry(prefix_len).or_insert_with(|| (String::new(), Vec::new()));
+                if let Ok(line) = simdutf8::basic::from_utf8(line) {
+                    start_positions.push(index.len() as u32);
+                    index.push_str(line);
+                }
 
-        }
+                Ok(true)
+            }
+        )?;
 
         Ok(
             Searcher {
@@ -109,65 +113,53 @@ impl Searcher {
         let from_len = max(pattern_len - max_distance, 0);
         let to_len = min(pattern_len + max_distance, self.max_length);
 
-        if max_distance > 3 {
-            for current_len in from_len..to_len + 1 {
-                if let Some((index, start_positions)) = self.indices.get(&current_len) {
-                    start_positions
-                    .par_iter()
-                    .for_each(
-                        |&start_position| {
-                            if Searcher::wagner_fischer(
-                                pattern,
-                                unsafe { index.get_unchecked(start_position..start_position + current_len) },
-                                max_distance,
-                            ) {
-                                results.lock().push(unsafe { index.get_unchecked(start_position..start_position + current_len) }.to_string());
+        for current_len in from_len..to_len + 1 {
+            if let Some((index, start_positions)) = self.indices.get(&current_len) {
+                if max_distance > 3 {
+                    start_positions.par_iter().enumerate().for_each(
+                        |(start_pos_index, &start_pos)| {
+                            let entry = unsafe { index.get_unchecked(start_pos as usize..start_pos as usize + current_len) };
+                            if Searcher::wagner_fischer(pattern, entry, max_distance) {
+                                let entry = if start_positions.len() == start_pos_index + 1 {
+                                    &index[start_pos as usize..]
+                                } else {
+                                    &index[start_pos as usize..start_positions[start_pos_index + 1] as usize]
+                                };
+                                results.lock().push(entry.to_string());
                             }
                         }
                     );
-                }
-            }
-        } else {
-            for current_len in from_len..to_len + 1 {
-                if current_len < pattern_len {
+                } else if current_len < pattern_len {
                     let changes_matrix = MBLEVEN_MATRIX[max_distance][pattern_len - current_len];
-
-                    if let Some((index, start_positions)) = self.indices.get(&current_len) {
-                        start_positions
-                        .par_iter()
-                        .for_each(
-                            |&start_position| {
-                                if self.fast_mbleven(
-                                    pattern,
-                                    unsafe { index.get_unchecked(start_position..start_position + current_len) },
-                                    changes_matrix,
-                                    max_distance,
-                                ) {
-                                    results.lock().push(unsafe { index.get_unchecked(start_position..start_position + current_len) }.to_string());
-                                }
+                    start_positions.par_iter().enumerate().for_each(
+                        |(start_pos_index, &start_pos)| {
+                            let entry = unsafe { index.get_unchecked(start_pos as usize..start_pos as usize + current_len) };
+                            if self.fast_mbleven(pattern, entry, changes_matrix, max_distance) {
+                                let entry = if start_positions.len() == start_pos_index + 1 {
+                                    &index[start_pos as usize..]
+                                } else {
+                                    &index[start_pos as usize..start_positions[start_pos_index + 1] as usize]
+                                };
+                                results.lock().push(entry.to_string());
                             }
-                        );
-                    }
+                        }
+                    );
                 } else {
                     let changes_matrix = MBLEVEN_MATRIX[max_distance][current_len - pattern_len];
-
-                    if let Some((index, start_positions)) = self.indices.get(&current_len) {
-                        start_positions
-                        .par_iter()
-                        .for_each(
-                            |&start_position| {
-                                if self.fast_mbleven(
-                                    unsafe { index.get_unchecked(start_position..start_position + current_len) },
-                                    pattern,
-                                    changes_matrix,
-                                    max_distance,
-                                ) {
-                                    results.lock().push(unsafe { index.get_unchecked(start_position..start_position + current_len) }.to_string());
-                                }
+                    start_positions.par_iter().enumerate().for_each(
+                        |(start_pos_index, &start_pos)| {
+                            let entry = unsafe { index.get_unchecked(start_pos as usize..start_pos as usize + current_len) };
+                            if self.fast_mbleven(entry, pattern, changes_matrix, max_distance) {
+                                let entry = if start_positions.len() == start_pos_index + 1 {
+                                    &index[start_pos as usize..]
+                                } else {
+                                    &index[start_pos as usize..start_positions[start_pos_index + 1] as usize]
+                                };
+                                results.lock().push(entry.to_string());
                             }
-                        );
-                    }
-                }
+                        }
+                    );
+                };
             }
         }
 

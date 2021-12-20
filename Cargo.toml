@@ -33,14 +33,18 @@ name = "fastzy"
 crate-type = ["cdylib"]
 
 [dependencies]
+bstr = "0.2"
+bytecount = "0.6"
 memchr = "2.4"
 parking_lot = "0.11"
 rayon = "1.5"
+simdutf8 = "0.1"
 
 [dependencies.pyo3]
 version = "0.15.1"
 features = ["extension-module"]
 
 [profile.release]
-lto = true
-panic = "abort"
+# lto = true
+# panic = "abort"
+debug = true
