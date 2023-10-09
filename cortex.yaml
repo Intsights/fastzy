@@ -1,0 +1,15 @@
+---
+info:
+  title: Fastzy
+  description: Python library for fast fuzzy search over a big file written in Rust
+  x-cortex-git:
+    github:
+      alias: intsightsorg
+      repository: Intsights/fastzy
+  x-cortex-tag: fastzy
+  x-cortex-type: service
+  x-cortex-domain-parents:
+  - tag: threatintel-rd
+openapi: 3.0.1
+servers:
+- url: "/"
