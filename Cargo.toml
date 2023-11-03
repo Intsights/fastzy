@@ -1,6 +1,6 @@
 [package]
 name = "fastzy"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["Gal Ben David <gal@intsights.com>"]
 edition = "2021"
 description = "Python library for fast fuzzy search over a big file written in Rust"
@@ -26,6 +26,7 @@ classifier = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Rust",
 ]
 
