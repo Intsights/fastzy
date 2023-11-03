@@ -8,7 +8,7 @@
 </p>
 
 ![license](https://img.shields.io/badge/MIT-License-blue)
-![Python](https://img.shields.io/badge/Python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue)
+![Python](https://img.shields.io/badge/Python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)
 ![Build](https://github.com/Intsights/fastzy/workflows/Build/badge.svg)
 [![PyPi](https://img.shields.io/pypi/v/fastzy.svg)](https://pypi.org/project/fastzy/)
 
