@@ -1,6 +1,6 @@
 [package]
 name = "fastzy"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["Gal Ben David <gal@intsights.com>"]
 edition = "2021"
 description = "Python library for fast fuzzy search over a big file written in Rust"
@@ -15,19 +15,6 @@ keywords = [
 ]
 
 [package.metadata.maturin]
-requires-python = ">=3.7"
-classifier = [
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: MacOS",
-    "Operating System :: Microsoft",
-    "Operating System :: POSIX :: Linux",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Rust",
-]
 
 [lib]
 name = "fastzy"
