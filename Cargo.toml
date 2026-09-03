@@ -21,7 +21,7 @@ name = "fastzy"
 crate-type = ["cdylib"]
 
 [dependencies]
-bstr = "0.2"
+bstr = "1.0"
 bytecount = "0.6"
 memchr = "2.4"
 parking_lot = "0.11"
