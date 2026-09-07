@@ -29,7 +29,7 @@ rayon = "1.5"
 simdutf8 = "0.1"
 
 [dependencies.pyo3]
-version = "0.15.1"
+version = "0.29.0"
 features = ["extension-module"]
 
 [profile.release]
